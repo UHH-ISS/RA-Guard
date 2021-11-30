@@ -1,0 +1,10 @@
+name: monitor
+root: ./
+
+windows:
+    - mininet:
+        - ./run_mininet.sh simple <%= @args[0] %>
+    - h1 interface:
+        - tail -n +0 -F ./mininet_src/pcaps/h1-eth0.pcap | sudo tcpdump -er - 
+    - h2 interface:
+        - tail -n +0 -F ./mininet_src/pcaps/h2-eth0.pcap | sudo tcpdump -er - 

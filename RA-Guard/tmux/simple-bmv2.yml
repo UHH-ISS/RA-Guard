@@ -1,0 +1,26 @@
+name: monitor
+root: ./
+
+windows:
+    - mininet:
+        - ./run_mininet.sh simple-bmv2 <%= @args[0] %>
+    - p4runtime:
+        - bash
+        - sudo rm mininet_src/logs/* mininet_src/pcaps/*.pcap
+        - sudo touch mininet_src/logs/s1.log 
+        - tail -n +0 --pid=$$ --follow=name mininet_src/logs/s1.log | { sed "/program-options/ q" && kill $$ ;}
+        - ./run_controller.sh -p4 <%= @settings["p4"] %> --topology simple
+    - switch log:
+        - tail -F mininet_src/logs/s1.log
+    - switch-h1 interface:
+        panes: 
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth1_in.pcap | sudo tcpdump -er -
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth1_out.pcap | sudo tcpdump -er -
+    - switch-h2 interface:
+        panes: 
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth2_in.pcap | sudo tcpdump -er -
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth2_out.pcap | sudo tcpdump -er -
+    - h1 interface:
+        - tail -n +0 -F ./mininet_src/pcaps/h1-eth0.pcap | sudo tcpdump -er - 
+    - h2 interface:
+        - tail -n +0 -F ./mininet_src/pcaps/h2-eth0.pcap | sudo tcpdump -er - 

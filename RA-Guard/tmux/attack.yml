@@ -1,0 +1,12 @@
+name: monitor
+root: ./
+
+windows:
+    - mininet:
+        - ./run_mininet.sh attack <%= @args[0] %>
+    - host interface:
+        - tail -n +0 -F ./mininet_src/pcaps/host-eth0.pcap | sudo tcpdump -er - 
+    - server interface:
+        - tail -n +0 -F ./mininet_src/pcaps/server-eth0.pcap | sudo tcpdump -er - 
+    - attacker interface:
+        - tail -n +0 -F ./mininet_src/pcaps/attacker-eth0.pcap | sudo tcpdump -er - 

@@ -1,0 +1,25 @@
+name: monitor
+root: ./
+
+windows:
+    - mininet:
+        - ./run_mininet.sh attack-bmv2 <%= @args[0] %>
+    - p4runtime:
+        - bash
+        - sudo rm mininet_src/logs/* mininet_src/pcaps/*.pcap
+        - sudo mkdir -p mininet_src/logs
+        - sudo touch mininet_src/logs/s1.log 
+        - tail -n +0 --pid=$$ --follow=name mininet_src/logs/s1.log | { sed "/program-options/ q" && kill $$ ;}
+        - ./run_controller.sh -p4 <%= @settings["p4"] %> <%= @settings["c_args"] %> --topology attack
+    - switch log:
+        - tail -F mininet_src/logs/s1.log
+    - switch-router interface:
+        panes: 
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth1_in.pcap | sudo tcpdump -er -
+            - tail -n +0 -F ./mininet_src/pcaps/s1-eth1_out.pcap | sudo tcpdump -er -
+    - host interface:
+        - tail -n +0 -F ./mininet_src/pcaps/host-eth0.pcap | sudo tcpdump -er - 
+    - server interface:
+        - tail -n +0 -F ./mininet_src/pcaps/server-eth0.pcap | sudo tcpdump -er - 
+    - attacker interface:
+        - tail -n +0 -F ./mininet_src/pcaps/attacker-eth0.pcap | sudo tcpdump -er - 
